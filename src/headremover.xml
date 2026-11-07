@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" version="5.0" group="system" method="upgrade">
+<name>PLG_SYSTEM_HEADREMOVER</name>
+<author>Protocolli Creativi</author>
+<creationDate>2026-11</creationDate>
+<copyright>(C) 2026 Protocolli Creativi</copyright>
+<license>GPL-2.0-or-later</license>
+<authorEmail>info@protocollicreativi.it</authorEmail>
+<authorUrl>https://www.protocollicreativi.it</authorUrl>
+<version>2.0.0</version>
+<description>PLG_SYSTEM_HEADREMOVER_XML_DESCRIPTION</description>
+<namespace path="src">Pcrt\Plugin\System\HeadRemover</namespace>
+<files><folder plugin="headremover">services</folder><folder>src</folder><folder>forms</folder><filename>LICENSE.txt</filename></files>
+<languages folder="language">
+<language tag="en-GB">en-GB/plg_system_headremover.ini</language>
+<language tag="en-GB">en-GB/plg_system_headremover.sys.ini</language>
+<language tag="it-IT">it-IT/plg_system_headremover.ini</language>
+<language tag="it-IT">it-IT/plg_system_headremover.sys.ini</language>
+</languages>
+<config><fields name="params"><fieldset name="scope" label="PLG_SYSTEM_HEADREMOVER_SCOPE"><field name="frontend_only" type="radio" label="PLG_SYSTEM_HEADREMOVER_FRONTEND_ONLY" layout="joomla.form.field.radio.switcher" default="1"><option value="0">JNO</option><option value="1">JYES</option></field><field name="exclude_backend" type="radio" label="PLG_SYSTEM_HEADREMOVER_EXCLUDE_BACKEND" layout="joomla.form.field.radio.switcher" default="1"><option value="0">JNO</option><option value="1">JYES</option></field></fieldset><fieldset name="remove" label="PLG_SYSTEM_HEADREMOVER_REMOVE"><field name="core_assets" type="textarea" label="PLG_SYSTEM_HEADREMOVER_CORE_ASSETS" rows="6" filter="string" default="" description="PLG_SYSTEM_HEADREMOVER_CORE_WARNING"></field><field name="remove_urls" type="subform" label="PLG_SYSTEM_HEADREMOVER_REMOVE_URLS" formsource="plugins/system/headremover/forms/remove_urls.xml" multiple="true" layout="joomla.form.field.subform.repeatable-table" buttons="add,remove,move" description="PLG_SYSTEM_HEADREMOVER_REMOVE_URLS_DESC"></field></fieldset><fieldset name="add" label="PLG_SYSTEM_HEADREMOVER_ADD"><field name="scripts" type="subform" label="PLG_SYSTEM_HEADREMOVER_SCRIPTS" formsource="plugins/system/headremover/forms/scripts.xml" multiple="true" layout="joomla.form.field.subform.repeatable-table" buttons="add,remove,move" description="PLG_SYSTEM_HEADREMOVER_ORDER_DESC"></field><field name="styles" type="subform" label="PLG_SYSTEM_HEADREMOVER_STYLES" formsource="plugins/system/headremover/forms/styles.xml" multiple="true" layout="joomla.form.field.subform.repeatable-table" buttons="add,remove,move" description="PLG_SYSTEM_HEADREMOVER_ORDER_DESC"></field></fieldset><fieldset name="meta" label="PLG_SYSTEM_HEADREMOVER_META"><field name="remove_generator" type="radio" label="PLG_SYSTEM_HEADREMOVER_REMOVE_GENERATOR" layout="joomla.form.field.radio.switcher" default="0"><option value="0">JNO</option><option value="1">JYES</option></field><field name="remove_author" type="radio" label="PLG_SYSTEM_HEADREMOVER_REMOVE_AUTHOR" layout="joomla.form.field.radio.switcher" default="0"><option value="0">JNO</option><option value="1">JYES</option></field><field name="metas" type="subform" label="PLG_SYSTEM_HEADREMOVER_METAS" formsource="plugins/system/headremover/forms/metas.xml" multiple="true" layout="joomla.form.field.subform.repeatable-table" buttons="add,remove,move"></field><field name="motd" type="textarea" label="PLG_SYSTEM_HEADREMOVER_MOTD" rows="4" filter="string" description="PLG_SYSTEM_HEADREMOVER_MOTD_DESC"></field></fieldset></fields></config>
+<updateservers><server type="extension" priority="1" name="Head Remover">https://raw.githubusercontent.com/pcrt/head-remover-joomla/main/updateserver/extension.xml</server></updateservers>
+</extension>

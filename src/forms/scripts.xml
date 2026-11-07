@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form><field name="url" type="text" label="PLG_SYSTEM_HEADREMOVER_ASSET_URL" filter="string"></field><field name="mode" type="list" label="PLG_SYSTEM_HEADREMOVER_MODE" default=""><option value="">PLG_SYSTEM_HEADREMOVER_NORMAL</option><option value="defer">PLG_SYSTEM_HEADREMOVER_DEFER</option><option value="async">PLG_SYSTEM_HEADREMOVER_ASYNC</option><option value="module">PLG_SYSTEM_HEADREMOVER_MODULE</option></field></form>

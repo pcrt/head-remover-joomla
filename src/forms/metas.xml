@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form><field name="kind" type="list" label="PLG_SYSTEM_HEADREMOVER_KIND" default="name"><option value="name">PLG_SYSTEM_HEADREMOVER_NAME</option><option value="property">PLG_SYSTEM_HEADREMOVER_PROPERTY</option><option value="http-equiv">PLG_SYSTEM_HEADREMOVER_HTTP_EQUIV</option></field><field name="name" type="text" label="PLG_SYSTEM_HEADREMOVER_META_NAME" filter="string"></field><field name="content" type="text" label="PLG_SYSTEM_HEADREMOVER_CONTENT" filter="string"></field></form>

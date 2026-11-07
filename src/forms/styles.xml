@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form><field name="url" type="text" label="PLG_SYSTEM_HEADREMOVER_ASSET_URL" filter="string"></field><field name="media" type="text" label="PLG_SYSTEM_HEADREMOVER_MEDIA" default="all" filter="string"></field></form>

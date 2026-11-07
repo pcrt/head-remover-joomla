@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form><field name="type" type="list" label="PLG_SYSTEM_HEADREMOVER_TYPE" default="both"><option value="both">PLG_SYSTEM_HEADREMOVER_BOTH</option><option value="script">PLG_SYSTEM_HEADREMOVER_SCRIPT</option><option value="style">PLG_SYSTEM_HEADREMOVER_STYLE</option></field><field name="url" type="text" label="PLG_SYSTEM_HEADREMOVER_URL" filter="string"></field></form>
