@@ -1,43 +1,47 @@
 # Verifica del 7 novembre 2026
 
-## Eseguito
+Verifica a runtime eseguita con Docker 27.4.0 (linux/arm64) sul pacchetto `dist/plg_system_headremover-2.0.0.zip`, SHA-256 `79eef10463e17e8f95c498132ac1b4a3f5a1cc5639ec8052423d14f449b8ebef`. Comando: `JEDCHECKER_ZIP=/percorso/com_jedchecker-2.4.4.zip ./tests/docker-test.sh` (esito `ALL PASS`, exit code 0); gli HTML e i log acquisiti restano in `tests/results/`.
 
-- Lettura del PHP e del manifest della 1.1.0 dallo ZIP locale, senza modificarlo.
-- Consultazione dei sorgenti ufficiali Joomla 5.4/6.2 per eventi, plugin, Document e WebAssetManager.
-- `python3 tests/static_check.py`: superato. XML, elemento/namespace, file inclusi, quattro file lingua, chiavi tradotte, riferimenti subform, licenza, assenza API Joomla 3 vietate, server aggiornamenti, integrità ZIP, uguaglianza contenuti e build riproducibile.
-- `bash -n build.sh tests/docker-test.sh`: superato.
-- Compilazione sintattica Python degli script di verifica: superata.
-- Revisione manuale del codice: nessun ripristino involontario di `assetManager` tramite Document; rimozione transitiva dei dipendenti; delimitatori MOTD neutralizzati; escaping dei meta; URL custom limitati a HTTP(S) e percorsi locali.
+## Ambiente
 
-## Non eseguibile in questa sessione
-
-| Prova | Esito osservato |
+| Componente | Immagine / versione |
 | --- | --- |
-| Joomla 5.4 in `joomla:5` + MariaDB | Non eseguita: accesso al socket Docker negato dal sandbox. |
-| Joomla 6.2 in `joomla:6` + MariaDB | Non eseguita, stesso blocco. |
-| curl sulla home dei due siti | Non eseguito: nessun sito di test avviato. |
-| `php -l` con PHP 8.3 | Non eseguito: interprete locale assente, container PHP non avviabile. |
-| JED Checker 2.4.4 | Pacchetto ritrovato in `/private/tmp/claude-501/.../scratchpad/jed/tool/release-2.4.4/`, ma non eseguito: richiede PHP/Joomla. Nessun esito positivo dichiarato. |
+| Joomla 5 | `joomla:5-php8.3-apache` → Joomla 5.4.10, PHP 8.3.36, Apache 2.4.69 |
+| Joomla 6 | `joomla:6-php8.4-apache` → Joomla 6.2.0, PHP 8.4.27, Apache 2.4.69 |
+| Database | `mariadb:11`, un database per sito (`joomla5`, `joomla6`) |
+| Lint | `php:8.1-cli` (PHP 8.1.34) e `php:8.4-cli` (PHP 8.4.27) |
+| JED Checker | 2.4.4, archivio sorgente della release GitHub (la release non ha allegati), impacchettato con `zip -r` |
 
-`./tests/docker-test.sh` è stato tentato: si è fermato alla verifica iniziale `docker info` con `connect: operation not permitted`. Nessun container, volume o rete è stato creato da questa sessione; non ci sono container di test da rimuovere.
+## Esito per verifica
 
-Lo script predisposto installerà il pacchetto con Joomla Installer e abiliterà i parametri di prova. Confronterà via curl HTML prima/dopo: JS e CSS aggiunti in ordine, attributi defer/module/media, rimozione per URL attraverso WAM e Document, rimozione per nome e dipendenti, asset non selezionati conservati, generator/author rimossi, meta name/property/http-equiv ordinati, escaping e MOTD sanificato immediatamente dopo head. Controllerà anche l’esclusione incondizionata del backend con `frontend_only=0`. I risultati non vanno considerati acquisiti finché lo script non è stato eseguito con successo.
+| Verifica | Joomla 5.4.10 | Joomla 6.2.0 |
+| --- | --- | --- |
+| `php -l` su `src/` e `tests/` con PHP 8.1 e 8.4 | nessun errore | nessun errore |
+| Controllo statico `tests/static_check.py` (manifest, lingue, subform, API vietate, licenza, update server con SHA-256, build riproducibile) | PASS | PASS |
+| Installazione da CLI `php cli/joomla.php extension:install --path=…zip` | `Extension installed successfully`, plugin disabilitato, update site registrato | idem |
+| Plugin installato ma disabilitato: HTML della home identico a quello precedente (token CSRF e media version mascherati) | identico | identico |
+| Plugin abilitato: rimozione per nome (`hr.fixture.base`) e dei dipendenti, famiglia `bootstrap.*` (`collapse.min.js`, `bootstrap.min.css`), per URL via WebAssetManager e via Document; asset non selezionati conservati (`core.min.js`, opzioni script, `keep-*`) | PASS | PASS |
+| Script e CSS aggiunti nell’ordine indicato con `defer`/`module` e `media`; `javascript:` rifiutato | PASS | PASS |
+| Meta `generator` e `author` rimossi; meta personalizzati `name`/`property`/`http-equiv` in ordine con escaping | PASS | PASS |
+| MOTD sanificato (`-->` e `<script>` neutralizzati) subito dopo `<head>`, anche sulla pagina 404 | PASS | PASS |
+| Backend escluso con `frontend_only=0` e `exclude_backend=1` (pagina di login amministrativa invariata) | PASS | PASS |
+| Backend: login, elenco plugin con nome «System - Head Remover», form di modifica senza chiavi non tradotte e con 4 subform, salvataggio dal form reale applicato sul frontend | PASS | PASS |
+| Seconda installazione della stessa zip: record `#__extensions` invariato (enabled e hash dei parametri), un solo update site, HTML identico | PASS | PASS |
+| Plugin disabilitato dopo le prove: HTML identico a quello iniziale | PASS | PASS |
+| Nessun messaggio PHP nel log del container (Apache/PHP) né file in `administrator/logs` con `error_reporting = 'maximum'` | nessuno | nessuno |
+| JED Checker 2.4.4, tutte le 12 regole sul pacchetto | 0 errori, 0 avvisi, 0 notice | 0 errori, 0 avvisi, 0 notice (vedi nota) |
 
-Il codice è preparato per Joomla 5 e 6; la compatibilità runtime non è ancora validata.
+Prove manuali aggiuntive, con gli stessi container, non comprese nella pipeline: rimozione di `core` (spariscono anche `keepalive`, `messages`, `passwordview`, `bootstrap.collapse`, il blocco delle opzioni script e gli script di template/menu che ne dipendono, senza errori); parametri nel formato oggetto salvato dal form (`{"scripts":{"scripts0":{…}}}`); backend elaborato con entrambe le protezioni disattivate; feed RSS (`?format=feed`) non toccato; compressione gzip/deflate attiva nella configurazione globale: MOTD presente sulla home e sulla 404, nessun errore.
+
+## Note
+
+- JED Checker 2.4.4 è un componente per Joomla 4/5 e usa `Joomla\CMS\Filesystem\Folder`, rimosso in Joomla 6: si installa in Joomla 6, ma la sua interfaccia va in errore. `tests/jedchecker-run.php` esegue le stesse regole da CLI con un alias verso `Joomla\Filesystem\*`; i risultati in Joomla 5 e 6 coincidono.
+- La prima esecuzione del checker segnalava l’avviso «The name of the plugin ('Head Remover') must comply with the JED naming conventions in the form '{Type} - {Extension Name}'»: il nome tradotto è ora «System - Head Remover» (italiano «Sistema - Head Remover»). La scheda JED resta «Head Remover».
+- La regola JAMSS segnalava la sequenza esadecimale `"\x1f\x8b"` usata per riconoscere un body già compresso: sostituita dal controllo dell’intestazione `Content-Encoding`.
+- La pagina 404 non riceve `onAfterRender` (il corpo viene impostato dall’ExceptionHandler): il MOTD viene collocato in `onBeforeRespond` come ripiego, dopo la verifica che la risposta non sia già compressa.
+- `InstallerHelper::unpack()` estrae l’archivio accanto al file: nella pipeline la zip viene copiata in una cartella scrivibile del container prima di `extension:install`. L’immagine ufficiale abilita opcache con `revalidate_freq=2`: la fixture del template viene applicata prima della prima richiesta HTTP.
+- La 1.1.0 (`/Users/eddy/Documents/SVILUPPO/protocollicreativi.it/plg_head_remove/1.0.1.zip`) non è stata modificata.
 
 ## Repository e release
 
-Repository locale: `/Users/eddy/Documents/SVILUPPO/head-remover-joomla`, branch `main`, tag annotato locale `v2.0.0`.
-
-Destinazione prevista: `https://github.com/pcrt/head-remover-joomla`; il remoto `origin` è predisposto. L’esistenza del repository pubblico non è verificata.
-
-Tentativi effettuati:
-
-- `gh repo create pcrt/head-remover-joomla --public --source . --push`: fallito con `error connecting to api.github.com`.
-- `gh release create v2.0.0 dist/plg_system_headremover-2.0.0.zip --repo pcrt/head-remover-joomla --title "Head Remover 2.0.0" --notes-file NOTE_RELEASE.md`: fallito con lo stesso errore di rete.
-- Anche curl dalla shell non risolve github.com. Lo stato dell’autenticazione GitHub non è verificabile con affidabilità da questa sessione.
-
-ZIP pronto: `dist/plg_system_headremover-2.0.0.zip`.
-SHA-256: `0da6b9f9fb9133b46055343098161b49493b174852b2c18e436b61e786c9705b`.
-
-Restano da eseguire in un ambiente con Docker e rete disponibili: test funzionali e lint, controllo JED Checker, pubblicazione del repository/tag/release. A Eddy resta inoltre la gestione manuale della scheda JED, inclusa la verifica dell’account proprietario; nessuna modifica alla scheda è stata tentata.
+Repository locale `/Users/eddy/Documents/SVILUPPO/head-remover-joomla`, branch `main`, tag locale `v2.0.0` sul commit finale. Nessuna azione pubblica è stata eseguita: repository GitHub `pcrt/head-remover-joomla`, release con la zip allegata e scheda JED restano da fare a mano (vedere README e NOTE_RELEASE.md).
