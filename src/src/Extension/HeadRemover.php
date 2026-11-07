@@ -7,6 +7,7 @@
 
 namespace Pcrt\Plugin\System\HeadRemover\Extension;
 
+use Joomla\CMS\Application\WebApplication;
 use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Event\Application\BeforeCompileHeadEvent;
 use Joomla\CMS\Plugin\CMSPlugin;
@@ -30,13 +31,18 @@ final class HeadRemover extends CMSPlugin implements SubscriberInterface
     {
         return [
             'onBeforeCompileHead' => ['onBeforeCompileHead', -1000],
-            'onAfterRender' => ['onAfterRender', -1000],
+            'onAfterRender'       => ['onAfterRender', -1000],
+            'onBeforeRespond'     => ['onBeforeRespond', -1000],
         ];
     }
 
     private function applies(): bool
     {
         $app = $this->getApplication();
+
+        if (!$app instanceof WebApplication) {
+            return false;
+        }
 
         if ($app->isClient('administrator') && (bool) $this->params->get('exclude_backend', 1)) {
             return false;
@@ -121,16 +127,45 @@ final class HeadRemover extends CMSPlugin implements SubscriberInterface
     /** The final HTML is used only to place the prepared MOTD, never to rewrite assets. */
     public function onAfterRender(EventInterface $event): void
     {
+        $this->placeMotd();
+    }
+
+    /**
+     * Error pages are rendered by the ExceptionHandler, which sets the body without
+     * dispatching onAfterRender: place the MOTD before the response is sent. On regular
+     * pages onAfterRender has already consumed it and this is a no-op.
+     */
+    public function onBeforeRespond(EventInterface $event): void
+    {
+        $this->placeMotd();
+    }
+
+    private function placeMotd(): void
+    {
         if ($this->motd === '' || !$this->applies()) {
             return;
         }
 
-        $app = $this->getApplication();
-        $comment = $this->motd;
-        $body = preg_replace_callback('/<head\b[^>]*>/i', static fn ($match) => $match[0] . $comment, $app->getBody(), 1);
+        /** @var WebApplication $app */
+        $app  = $this->getApplication();
+        $body = (string) $app->getBody();
 
-        if ($body !== null) {
-            $app->setBody($body);
+        if ($body === '') {
+            return;
+        }
+
+        // Never touch a body that the application has already compressed.
+        foreach ($app->getHeaders() as $header) {
+            if (strcasecmp((string) ($header['name'] ?? ''), 'Content-Encoding') === 0) {
+                return;
+            }
+        }
+
+        $comment = $this->motd;
+        $result  = preg_replace_callback('/<head\b[^>]*>/i', static fn ($match) => $match[0] . $comment, $body, 1);
+
+        if ($result !== null) {
+            $app->setBody($result);
         }
 
         $this->motd = '';
