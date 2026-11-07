@@ -11,8 +11,12 @@ $this->addScript('/media/headremover-remove-legacy.js');
 $this->addStyleSheet('/media/headremover-remove-legacy.css');
 $this->addScript('/media/headremover-keep-legacy.js');
 $wa = $this->getWebAssetManager();
-$wa->registerAndUseScript('hr.fixture.base', '/media/headremover-base.js');
-$wa->registerAndUseScript('hr.fixture.dependant', '/media/headremover-dependant.js', [], [], ['hr.fixture.base']);
-$wa->registerAndUseScript('hr.fixture.url', '/media/headremover-remove-wam.js');
-$wa->registerAndUseStyle('hr.fixture.style', '/media/headremover-remove-wam.css');
-$wa->registerAndUseStyle('hr.fixture.keep', '/media/headremover-keep-wam.css');
+// WebAssetManager paths are relative to the Joomla root (a leading slash would be rendered as //media/...).
+$wa->registerAndUseScript('hr.fixture.base', 'media/headremover-base.js');
+$wa->registerAndUseScript('hr.fixture.dependant', 'media/headremover-dependant.js', [], [], ['hr.fixture.base']);
+$wa->registerAndUseScript('hr.fixture.url', 'media/headremover-remove-wam.js');
+$wa->registerAndUseStyle('hr.fixture.style', 'media/headremover-remove-wam.css');
+$wa->registerAndUseStyle('hr.fixture.keep', 'media/headremover-keep-wam.css');
+// Core family assets, to exercise the bootstrap.* pattern (bootstrap.collapse depends on core).
+$wa->useScript('bootstrap.collapse');
+$wa->useStyle('bootstrap.css');

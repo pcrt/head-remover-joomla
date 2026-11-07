@@ -28,6 +28,8 @@ for lang in ['en-GB','it-IT']:
             if p.name.endswith('.sys.ini'): assert k in {'PLG_SYSTEM_HEADREMOVER','PLG_SYSTEM_HEADREMOVER_XML_DESCRIPTION'}
             values[k] = v
     assert keys <= values.keys(), (lang, keys-values.keys())
+    # JED naming convention for plugins: "{Type} - {Extension Name}" (System - Head Remover).
+    assert values['PLG_SYSTEM_HEADREMOVER'].endswith(' - Head Remover"'), (lang, values['PLG_SYSTEM_HEADREMOVER'])
 for p in src.rglob('*.php'):
     text=p.read_text()
     assert "defined('_JEXEC') or die" in text
@@ -49,5 +51,7 @@ with zipfile.ZipFile(z) as archive:
         assert archive.read(name) == (src/name).read_bytes()
 subprocess.run([str(r/'build.sh')],check=True,cwd=r)
 assert first == z.read_bytes(), 'non-reproducible ZIP'
-assert (Path(str(z)+'.sha256')).read_text().split()[0] == hashlib.sha256(first).hexdigest()
+checksum = hashlib.sha256(first).hexdigest()
+assert (Path(str(z)+'.sha256')).read_text().split()[0] == checksum
+assert re.findall(r'<sha256>([0-9a-f]{64})</sha256>', (r/'updateserver/extension.xml').read_text()) == [checksum, checksum], 'update server checksum'
 print('PASS: XML, metadata, translations, subforms, forbidden APIs, license, update server, archive integrity and deterministic build')
